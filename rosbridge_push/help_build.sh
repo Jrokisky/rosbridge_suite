@@ -1,0 +1,2 @@
+cd ../../..
+catkin_make

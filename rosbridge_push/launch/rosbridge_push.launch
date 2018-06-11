@@ -1,0 +1,4 @@
+<launch>
+  <node name="rosbridge_push" pkg="rosbridge_push" type="rosbridge_push" output="screen">
+  </node>
+</launch>
