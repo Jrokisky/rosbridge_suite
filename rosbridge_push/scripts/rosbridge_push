@@ -6,12 +6,16 @@ from rosbridge_push import RosbridgePushClient
 if __name__ == "__main__":
     rospy.init_node("rosbridge_push", log_level=rospy.DEBUG)
     rospy.loginfo("Starting rosbridge_push")
+    rospush_client = RosbridgePushClient("ws://jrokisky.com:8080")
+    rospy.on_shutdown(rospush_client.close)
 
     while not rospy.is_shutdown():
-        rospush_client = RosbridgePushClient("ws://jrokisky.com:8080")
         if not rospush_client.isConnected():
             rospush_client.connect()
-            if not rospush_client.isSubscribed():
-                rospush_client.subscribe()
-        rospy.sleep(5)
+            
+        if rospush_client.isConnected() and not rospush_client.isSubscribed():
+            rospush_client.subscribe()
+
+        rospy.sleep(30)
+
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 import websocket
 import rospy
 from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
@@ -21,6 +20,7 @@ class RosbridgePushClient():
             rospy.loginfo("Connected to: %s", self.url)
         except Exception as exc:
             rospy.logerr("Unable to connect to server.  Reason: %s", str(exc))
+            self.connected = False
 
     def subscribe(self):
         try:
@@ -28,6 +28,7 @@ class RosbridgePushClient():
             self.subscribed = True
         except Exception as exc:
             rospy.logerr("Unable to subscribe.  Reason: %s", str(exc))
+            self.subcribed = False
 
     def isConnected(self):
         return self.connected
@@ -44,6 +45,9 @@ class RosbridgePushClient():
         return result
 
     def close(self):
-        self.ws.close()
-        self.connected = False
+        rospy.loginfo("Shutting down rosbridge_push")
+        if self.isConnected():
+            rospy.loginfo("Closed websocket to: %s", self.url)
+            self.ws.close()
+            self.connected = False
         self.subscribed = False
