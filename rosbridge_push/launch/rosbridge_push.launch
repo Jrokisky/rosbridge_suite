@@ -1,4 +1,5 @@
 <launch>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find rosbridge_push)/blank_map_with_obstacle.yaml" />
   <node name="rosbridge_push" pkg="rosbridge_push" type="rosbridge_push" output="screen">
   </node>
 </launch>

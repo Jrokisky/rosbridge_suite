@@ -3,22 +3,47 @@
 from __future__ import print_function
 import websocket
 import rospy
+from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
 
 class RosbridgePushClient():
 
     def __init__(self, url):
         self.url = url
+        self.protocol = RosbridgeProtocol("main")
+        self.protocol.outgoing = self.send
+        self.connected = False
+        self.subscribed = False
 
     def connect(self):
-        self.ws = websocket.create_connection(self.url)
+        try:
+            self.ws = websocket.create_connection(self.url)
+            self.connected = True
+            rospy.loginfo("Connected to: %s", self.url)
+        except Exception as exc:
+            rospy.logerr("Unable to connect to server.  Reason: %s", str(exc))
+
+    def subscribe(self):
+        try:
+            self.protocol.incoming('{"op": "subscribe", "topic": "map", "type": "nav_msgs/OccupancyGrid"}')
+            self.subscribed = True
+        except Exception as exc:
+            rospy.logerr("Unable to subscribe.  Reason: %s", str(exc))
+
+    def isConnected(self):
+        return self.connected
+
+    def isSubscribed(self):
+        return self.subscribed
 
     def send(self, message):
-        rospy.logdebug(message)
+        rospy.loginfo("Sending message!")
         self.ws.send(message)
 
     def recv(self):
         result = self.ws.recv()
-        print("'%s'" % result)
+        return result
 
     def close(self):
         self.ws.close()
+        self.connected = False
+        self.subscribed = False

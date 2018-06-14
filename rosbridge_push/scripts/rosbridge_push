@@ -5,13 +5,13 @@ from rosbridge_push import RosbridgePushClient
 
 if __name__ == "__main__":
     rospy.init_node("rosbridge_push", log_level=rospy.DEBUG)
+    rospy.loginfo("Starting rosbridge_push")
 
     while not rospy.is_shutdown():
-        rospy.loginfo("Hi")
         rospush_client = RosbridgePushClient("ws://jrokisky.com:8080")
-        rospush_client.connect()
-        rospush_client.send("hello!")
-        rospush_client.recv()
-        rospush_client.close()
-        rospy.sleep(10)
+        if not rospush_client.isConnected():
+            rospush_client.connect()
+            if not rospush_client.isSubscribed():
+                rospush_client.subscribe()
+        rospy.sleep(5)
 
