@@ -12,10 +12,9 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         if not rospush_client.isConnected():
             rospush_client.connect()
+            rospy.sleep(10)
+        else:
+            rospush_client.recv();
             
-        if rospush_client.isConnected() and not rospush_client.isSubscribed():
-            rospush_client.subscribe()
-
-        rospy.sleep(30)
 
 
