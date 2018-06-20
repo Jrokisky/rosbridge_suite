@@ -1,0 +1,4 @@
+Getting traffic to node app running on port 3000
+------------------------------------------------
+* https://stackoverflow.com/questions/16573668/best-practices-when-running-node-js-with-port-80-ubuntu-linode?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+* iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000

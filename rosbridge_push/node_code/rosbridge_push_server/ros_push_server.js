@@ -1,11 +1,33 @@
 const WebSocket = require('ws');
+const express = require('express');
+const path = require("path");
+const switchboard = require("./switchboard");
 
-const wss = new WebSocket.Server({ port: 8080 });
+const app = express();
+const source_socket = new WebSocket.Server({ port: 8080 });
+const client_socket = new WebSocket.Server({ port: 8081 });
+const switch_op = switchboard();
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-  });
+source_socket.on('connection', (ws) => {
+  // TODO: Do some kind of authentication.
+  switch_op.initSource(ws);
+});
 
-  ws.send('something');
+client_socket.on('connection', (ws) => {
+  // TODO: Do some kind of authentication.
+  let auth = true;
+
+  if (auth) {
+    switch_op.initClient(ws);
+  }
+  
+});
+
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname+'/public/index.html')); 
+});
+
+app.listen(3000, () => {
+  console.log("Listening on port 3000");
 });
