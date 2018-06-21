@@ -9,18 +9,17 @@ const client_socket = new WebSocket.Server({ port: 8081 });
 const switch_op = switchboard();
 
 source_socket.on('connection', (ws) => {
-  // TODO: Do some kind of authentication.
-  switch_op.initSource(ws);
+  let auth = true;
+  if (auth) {
+    switch_op.initSource(ws);
+  }
 });
 
 client_socket.on('connection', (ws) => {
-  // TODO: Do some kind of authentication.
   let auth = true;
-
   if (auth) {
     switch_op.initClient(ws);
   }
-  
 });
 
 

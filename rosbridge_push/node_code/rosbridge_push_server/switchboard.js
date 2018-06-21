@@ -5,46 +5,49 @@
  */
 
 const rosbridge_utils = require('./rosbridge_utils');
+const topicManager = require("./topic_manager");
 
 module.exports = () => {
   return ({
     uid: 0,
-    clients: [],
+    clients: new Map(),
     source: null,
-    topics: new Map(),
+    topicMgr: topicManager(),
 
     initClient(ws) {
       ws.switchId = this.uid;
-      this.clients.push(ws);
+      this.clients.set(ws.switchId, ws);
       // Semaphore to avoid race conditions?
       this.uid++;
 
       ws.on('message', (msg) => {
         try {
-          let msgObj = JSON.parse(msg);
           const topic = '/map';
-          if (rosbridge_utils.validMsg(msgObj, 'subscribe', topic)) {
+          const latched = true;
 
-            let subscribedClients = this.topics.get(topic);
-            if (subscribedClients === undefined) {
-              subscribedClients = [];
-              // TODO: how do we ensure that the source is initialized?? or send msgs when connection finally happens?
-              // Pass msg along to source. Do we need to overwrite the id?
-              // TODO: removing png compression for now so we don't need to decompress/recompress.
-              delete msgObj.compression;
-              let msg = JSON.stringify(msgObj);
-              console.log("sending to source");
-              console.log(msg);
+          const msgObj = JSON.parse(msg);
+          
+          if (rosbridge_utils.validMsg(msgObj, 'subscribe', topic)) {
+            let mngdTopic = this.topicMgr.managedTopics.get(topic);
+            if (mngdTopic === undefined) {
+              console.log("Creating a new managed topic");
+              mngdTopic = this.topicMgr.createManagedTopic(topic, latched); 
+              // What if source does not actually create the topic?
+              // Shouldn't that be linked to the topic manager?
               this.source.send(msg);
             }           
-            subscribedClients.push(ws.switchId);
-            this.topics.set(topic, subscribedClients);
+            mngdTopic.addClient(ws.switchId);
+
+            if (mngdTopic.latched && mngdTopic.lastMsg) {
+              console.log("sending latched message");
+              this.send(mngdTopic.lastMsg, ws.switchId);
+            }
           } else {
             Error('Invalid message');
           }
         } catch (err) { 
           if (err instanceof SyntaxError) {
-            // TODO: handle json parsing error
+
           }
           console.log(err);
         }
@@ -55,11 +58,30 @@ module.exports = () => {
     initSource(ws) {
       this.source = ws;
       ws.on('message', (msg) => {
-        // TODO: pass msg along to clients.
-        this.clients.map((client) => {
-          client.send(msg);
-        });
+        const msgObj = JSON.parse(msg);
+        if (msgObj.hasOwnProperty('topic')) {
+          this.broadcast(msgObj.topic, msg);
+        }
       });
+    },
+
+    send(msg, clientId) {
+      const client = this.clients.get(clientId);
+      if (client !== undefined) {
+        client.send(msg);
+      } else {
+        console.log("Client: " + clientId + " does not exist");
+      }
+    },
+
+    broadcast(topicName, msg) {
+      const mngdTopic = this.topicMgr.managedTopics.get(topicName);
+      if (mngdTopic !== undefined) {
+        mngdTopic.setLastMsg(msg);
+        mngdTopic.clientIds.map(function(clientId, idx) {
+          this.send(msg, clientId);
+        }, this);
+      }
     },
 
   });
