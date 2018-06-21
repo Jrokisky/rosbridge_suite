@@ -303,7 +303,7 @@ class Subscribe(Capability):
         outgoing_msg = {"op": "publish", "topic": topic, "msg": message}
         if compression == "png":
             outgoing_msg_dumped = dumps(outgoing_msg)
-            outgoing_msg = {"op": "png", "data": encode(outgoing_msg_dumped)}
+            outgoing_msg = {"op": "png", "topic": topic, "data": encode(outgoing_msg_dumped)}
         self.protocol.send(outgoing_msg)
 
     def finish(self):
