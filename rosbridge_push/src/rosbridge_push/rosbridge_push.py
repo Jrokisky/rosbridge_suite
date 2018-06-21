@@ -8,7 +8,14 @@ class RosbridgePushClient():
 
     def __init__(self, url):
         self.url = url
-        self.protocol = RosbridgeProtocol("main")
+        parameters = {
+            "fragment_timeout": 600,
+            "delay_between_messages": 2,
+            "max_message_size": None,
+            "unregister_timeout": 10,
+            "bson_only_mode": False
+        }
+        self.protocol = RosbridgeProtocol("main", parameters=parameters)
         self.protocol.outgoing = self.send
         self.connected = False
 
