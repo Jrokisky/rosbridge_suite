@@ -17,10 +17,25 @@ module.exports = () => {
 
         addClient(clientId) {
           this.clientIds.push(clientId);
-        }
+        },
+
+        removeClient(clientId) {
+          let idx = this.clientIds.indexOf(clientId);
+          if (idx > -1) {
+            this.clientIds.splice(idx, 1);
+          }
+        },
       };      
+
       this.managedTopics.set(topicName, managedTopic);
       return managedTopic;
+    },
+
+    removeClient(clientId) {
+      this.managedTopics.forEach((mngdTopic, key, map) => {
+        mngdTopic.removeClient(clientId);
+      });
+      // TODO: need to handle unsubscribe
     },
 
   });

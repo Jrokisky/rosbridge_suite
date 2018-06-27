@@ -22,31 +22,24 @@ module.exports = () => {
 
       ws.on('message', (msg) => {
         try {
-          //const topic = '/map';
+          // TODO: pull latched from config. Should default to false.
           const latched = false;
-
           const msgObj = JSON.parse(msg);
           
-          //if (rosbridge_utils.validMsg(msgObj, 'subscribe', topic)) {
-            let mngdTopic = this.topicMgr.managedTopics.get(msgObj.topic);
-            if (mngdTopic === undefined) {
-              console.log("Creating a new managed topic");
-              mngdTopic = this.topicMgr.createManagedTopic(msgObj.topic, latched); 
-              // What if source does not actually create the topic?
-              // Shouldn't that be linked to the topic manager?
-              if (this.source) {
-                this.source.send(msg);
-              }
-            }           
-            mngdTopic.addClient(ws.switchId);
-
-            if (mngdTopic.latched && mngdTopic.lastMsg) {
-              console.log("sending latched message");
-              this.send(mngdTopic.lastMsg, ws.switchId);
+          let mngdTopic = this.topicMgr.managedTopics.get(msgObj.topic);
+          if (mngdTopic === undefined) {
+            console.log("Creating a new managed topic");
+            mngdTopic = this.topicMgr.createManagedTopic(msgObj.topic, latched); 
+            if (this.source) {
+              this.source.send(msg);
             }
-          //} else {
-            //Error('Invalid message');
-          //}
+          }           
+          mngdTopic.addClient(ws.switchId);
+
+	  // Send the last message for latched topics.
+          if (mngdTopic.latched && mngdTopic.lastMsg) {
+            this.send(mngdTopic.lastMsg, ws.switchId);
+          }
         } catch (err) { 
           if (err instanceof SyntaxError) {
 
@@ -54,6 +47,10 @@ module.exports = () => {
           console.log(err);
         }
       }); 
+
+      ws.on('close', () => {
+        this.topicMgr.removeClient(ws.switchId);
+      });
     },
 	
 
