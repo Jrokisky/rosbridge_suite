@@ -20,17 +20,22 @@
 
     var listener = new ROSLIB.Topic({
       ros : ros,
-      name : 'camera/depth/image_raw',
+      name : 'camera/depth/image_raw/throttled',
       messageType : 'sensor_msgs/Image',
       throttle_rate: 30,
       queue_length: 1,
-      
+      compression: "png",
     });
 
     listener.subscribe(function(message) {
       const image_data_decoded = window.atob(message.data);
       let image_array = new Uint8ClampedArray(message.width * message.height * 4);
       const big_endian = message.is_bigendian;
+
+      // What's the diff?
+      var ts = Math.round((new Date()).getTime() / 1000);
+      const time_diff = ts - message.header.stamp.secs;
+      console.log(time_diff);
       
       for(let i=0; i<(message.width * message.height); i++) {
          const key = 4 * i;
