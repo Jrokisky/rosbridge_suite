@@ -44,7 +44,7 @@ class RosbridgePushClient():
             rospy.loginfo(result);
             self.protocol.incoming(result);
         except websocket.WebSocketConnectionClosedException as exc:
-            rospy.logerror("Server is not responding. Error: %s", str(exc))
+            rospy.logerr("Server is not responding. Error: %s", str(exc))
 
 
     def close(self):

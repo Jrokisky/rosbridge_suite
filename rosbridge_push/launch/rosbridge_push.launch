@@ -2,9 +2,8 @@
   <node name="rosbridge_push" pkg="rosbridge_push" type="rosbridge_push" output="screen">
   </node>
 
-<!--
   <node name="map_server" pkg="map_server" type="map_server" args="$(find rail_maps)/maps/ilab.yaml" />
   <include file="$(find freenect_launch)/launch/freenect.launch" /> 
   <node name="thats_a_throttlin" type="throttle" pkg="topic_tools" args="messages /camera/depth/image_raw 3 /camera/depth/image_raw/throttled" />
--->
+
 </launch>
