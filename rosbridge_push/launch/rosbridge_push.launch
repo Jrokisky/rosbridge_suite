@@ -2,4 +2,6 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(find rail_maps)/maps/ilab.yaml" />
   <node name="rosbridge_push" pkg="rosbridge_push" type="rosbridge_push" output="screen">
   </node>
+
+  <include file="$(find freenect_launch)/launch/freenect.launch" /> 
 </launch>

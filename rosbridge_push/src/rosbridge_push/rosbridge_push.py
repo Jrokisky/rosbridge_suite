@@ -2,6 +2,7 @@
 
 import websocket
 import rospy
+import json
 from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
 
 class RosbridgePushClient():
@@ -10,7 +11,7 @@ class RosbridgePushClient():
         self.url = url
         parameters = {
             "fragment_timeout": 600,
-            "delay_between_messages": 2,
+            "delay_between_messages": 0,
             "max_message_size": None,
             "unregister_timeout": 10,
             "bson_only_mode": False
