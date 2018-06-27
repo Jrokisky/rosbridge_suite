@@ -22,19 +22,21 @@ module.exports = () => {
 
       ws.on('message', (msg) => {
         try {
-          const topic = '/map';
-          const latched = true;
+          //const topic = '/map';
+          const latched = false;
 
           const msgObj = JSON.parse(msg);
           
-          if (rosbridge_utils.validMsg(msgObj, 'subscribe', topic)) {
-            let mngdTopic = this.topicMgr.managedTopics.get(topic);
+          //if (rosbridge_utils.validMsg(msgObj, 'subscribe', topic)) {
+            let mngdTopic = this.topicMgr.managedTopics.get(msgObj.topic);
             if (mngdTopic === undefined) {
               console.log("Creating a new managed topic");
-              mngdTopic = this.topicMgr.createManagedTopic(topic, latched); 
+              mngdTopic = this.topicMgr.createManagedTopic(msgObj.topic, latched); 
               // What if source does not actually create the topic?
               // Shouldn't that be linked to the topic manager?
-              this.source.send(msg);
+              if (this.source) {
+                this.source.send(msg);
+              }
             }           
             mngdTopic.addClient(ws.switchId);
 
@@ -42,9 +44,9 @@ module.exports = () => {
               console.log("sending latched message");
               this.send(mngdTopic.lastMsg, ws.switchId);
             }
-          } else {
-            Error('Invalid message');
-          }
+          //} else {
+            //Error('Invalid message');
+          //}
         } catch (err) { 
           if (err instanceof SyntaxError) {
 

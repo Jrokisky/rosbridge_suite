@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<script type="text/javascript" src="https://static.robotwebtools.org/EaselJS/0.7.1/easeljs.js"></script>
+<script type="text/javascript" src="https://static.robotwebtools.org/EventEmitter2/0.4.14/eventemitter2.js"></script>
+<script type="text/javascript" src="https://static.robotwebtools.org/roslibjs/0.14.0/roslib.js"></script>
+<script type="text/javascript" src="https://static.robotwebtools.org/ros2djs/current/ros2d.js"></script>
+
+<script type="text/javascript" type="text/javascript">
+  /**
+   * Setup all visualization elements when the page is loaded.
+   */
+  function init() {
+    // Connect to ROS.
+    var ros = new ROSLIB.Ros({
+      url : 'ws://jrokisky.com:8081'
+    });
+
+    var listener = new ROSLIB.Topic({
+      ros : ros,
+      name : 'camera/depth/image_raw',
+      messageType : 'sensor_msgs/Image',
+      throttle_rate: 30,
+      queue_length: 1,
+      
+    });
+
+    listener.subscribe(function(message) {
+      const image_data_decoded = window.atob(message.data);
+      let image_array = new Uint8ClampedArray(message.width * message.height * 4);
+      const big_endian = message.is_bigendian;
+      
+      for(let i=0; i<(message.width * message.height); i++) {
+         const key = 4 * i;
+         image_array[key + 0] = 0;
+         image_array[key + 1] = 0;
+         image_array[key + 2] = 0;
+         // these will need to be switched based on endianness.
+         const high = image_data_decoded.charCodeAt(2*i + 1);
+         const low = image_data_decoded.charCodeAt(2*i);
+         // Worth loss in accuracy to ignore low bits?
+         const distance_mm = (((high & 0xff) << 8) | (low & 0xff));
+         const distance_m = distance_mm / 1000;
+         // Adjust distance by some relative base amount to get a clearer image.
+
+         const secret_sauce = (dist, rel_dist) => {
+           return dist * (255.0 / rel_dist);
+         }
+         image_array[key + 3] = 255 - secret_sauce(distance_m, 10.0);
+      }
+      
+//TODO: Need to check for endianess
+      var c = document.getElementById("myCanvas");
+      var ctx = c.getContext("2d");
+      var imgData = new ImageData(image_array, message.width, message.height);
+      ctx.putImageData(imgData,0,0);
+
+    });
+
+  }
+</script>
+</head>
+
+<body onload="init()">
+  <h1>Kinect Example</h1>
+  <canvas id="myCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
+</body>
+</html>
+
