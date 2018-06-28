@@ -53,7 +53,7 @@
          const secret_sauce = (dist, rel_dist) => {
            return dist * (255.0 / rel_dist);
          }
-         image_array[key + 3] = 255 - secret_sauce(distance_m, 10.0);
+         image_array[key + 3] = 255 - secret_sauce(distance_m, 6.0);
       }
       
 //TODO: Need to check for endianess

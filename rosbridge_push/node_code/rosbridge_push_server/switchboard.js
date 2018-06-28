@@ -17,28 +17,28 @@ module.exports = () => {
     initClient(ws) {
       ws.switchId = this.uid;
       this.clients.set(ws.switchId, ws);
-      // Semaphore to avoid race conditions?
       this.uid++;
 
       ws.on('message', (msg) => {
         try {
-          // TODO: pull latched from config. Should default to false.
-          const latched = false;
           const msgObj = JSON.parse(msg);
           
-          let mngdTopic = this.topicMgr.managedTopics.get(msgObj.topic);
-          if (mngdTopic === undefined) {
-            console.log("Creating a new managed topic");
-            mngdTopic = this.topicMgr.createManagedTopic(msgObj.topic, latched); 
-            if (this.source) {
-              this.source.send(msg);
-            }
-          }           
-          mngdTopic.addClient(ws.switchId);
+          if (this.source) {
+            let mngdTopic = this.topicMgr.managedTopics.get(msgObj.topic);
 
-	  // Send the last message for latched topics.
-          if (mngdTopic.latched && mngdTopic.lastMsg) {
-            this.send(mngdTopic.lastMsg, ws.switchId);
+            if (mngdTopic === undefined) {
+              console.log("Creating a new managed topic");
+              this.source.send(msg);
+              mngdTopic = this.topicMgr.createManagedTopic(msgObj.topic); 
+            }           
+
+            mngdTopic.addClient(ws.switchId);
+
+	    // Send the last message for latched topics.
+            if (mngdTopic.latched && mngdTopic.lastMsg) {
+              console.log("Sending latched msg");
+              this.send(mngdTopic.lastMsg, ws.switchId);
+            }
           }
         } catch (err) { 
           if (err instanceof SyntaxError) {

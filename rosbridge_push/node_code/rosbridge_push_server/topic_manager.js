@@ -4,8 +4,11 @@
 module.exports = () => {
   return ({
     managedTopics: new Map(),
+    latchedTopics: ['/map'],
     
-    createManagedTopic(topicName, latched) {
+    createManagedTopic(topicName) {
+      const latched = this.latchedTopics.indexOf(topicName) > -1;
+
       const managedTopic = {
         clientIds: [],
         latched: latched,
